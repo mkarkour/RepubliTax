@@ -1,0 +1,19 @@
+# FOLDERS
+# The following folders may contains sensitive information and are used to test/developpe
+# the code, and thus should not be taken into account.
+test_mto
+notebooks
+extracted_mto
+docs/input_mto
+output/filled_form
+output/status
+build
+dist
+
+
+# FILES
+# The following files are used for development purpose and thus do not need
+# to be taken into account.
+*.ipynb
+*.yaml
+signature.png

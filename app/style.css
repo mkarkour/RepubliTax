@@ -1,0 +1,20 @@
+.stApp {
+    background: linear-gradient(120deg, #faf5f5 0%, #c3cfe2 100%);
+}
+
+.stButton>button {
+    background: #003366 !important;
+    color: white !important;
+    border-radius: 8px !important;
+    padding: 10px 24px !important;
+}
+
+.stDownloadButton>button {
+    width: 100% !important;
+}
+
+.stExpander {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+}
