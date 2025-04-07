@@ -7,7 +7,8 @@ WORKDIR /code
 # Copy dependency files
 COPY requirements.txt .
 COPY pyproject.toml .
-COPY uv.lock .
+# --- Optional: used the lock file with the dependencies already installed
+# COPY uv.lock .
 COPY launcher.py .
 
 # --- UV installation (optional) ---
@@ -34,7 +35,7 @@ COPY launcher.py .
 RUN pip install -r requirements.txt
 #
 # 2. Install dependencies using `uv` (uncomment this line if you want to use UV)
-# RUN uv pip install -r requirements.txt
+# RUN uv install
 
 # --- Copy the application source code ---
 COPY app/ ./app/
