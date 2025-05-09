@@ -288,9 +288,6 @@ class Reader:
 
         Args:
             data (_type_): Data to keep.
-
-        Raise:
-
         """
         DATE_FORMAT_FILE = "%Y-%m"
         DATE_FORMAT_DATA = "%d-%m-%Y %H:%M:%S"
