@@ -3,7 +3,7 @@
 # 1. Make it executable: chmod +x run_docker.sh
 # 2. Run the script:     ./run_docker.sh
 
-IMAGE_NAME="AutoMTO"
+IMAGE_NAME="auto-mto"
 
 echo "🔨 Building the Docker image..."
 docker build -t $IMAGE_NAME .
