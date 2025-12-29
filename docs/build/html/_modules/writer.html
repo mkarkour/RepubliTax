@@ -1,0 +1,593 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>writer &mdash; RepubliTax 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            RepubliTax
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../notify.html">Notify</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../types.html">Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utils_files.html">File Utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utils_pdf.html">File Utilities PDF</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reader.html">Reader</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../writer.html">Writer</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">RepubliTax</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">writer</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for writer</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pymupdf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pymupdf</span><span class="w"> </span><span class="kn">import</span> <span class="n">Document</span><span class="p">,</span> <span class="n">Page</span><span class="p">,</span> <span class="n">Rect</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">writer_types</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExtractedData</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils_files</span><span class="w"> </span><span class="kn">import</span> <span class="n">FileUtils</span>
+
+
+<div class="viewcode-block" id="Writer">
+<a class="viewcode-back" href="../writer.html#writer.Writer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Writer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Handle text and signature insertion in PDF forms using PyMuPDF.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes the Writer class with predefined placeholders and font settings.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">current_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FORM_DOC</span> <span class="o">=</span> <span class="n">pymupdf</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">current_dir</span><span class="p">,</span> <span class="s2">&quot;../docs/form.pdf&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">PLACEHOLDER</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;FIRST_PAGE&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;start_month&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;..../&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">7</span><span class="p">)),</span>
+                <span class="s2">&quot;start_year&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;/.... &quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">)),</span>
+                <span class="s2">&quot;national_number&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot; National number or enterprise number:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">230</span><span class="p">,</span> <span class="mi">7</span><span class="p">)),</span>
+                <span class="s2">&quot;user_name&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Name and first name or designation:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">230</span><span class="p">,</span> <span class="mi">7</span><span class="p">)),</span>
+                <span class="s2">&quot;address&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Domicile or head office (complete address):&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">230</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;TAX_TABLE&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;pattern&quot;</span><span class="p">:</span> <span class="s2">&quot;.l........... , . .&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;offset&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;tax_basis&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">18</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
+                    <span class="s2">&quot;tax_amount&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">31</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
+                    <span class="s2">&quot;number&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">55</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;FINAL_PAGE&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;location&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;In.................................,&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">21</span><span class="p">,</span> <span class="mi">8</span><span class="p">)),</span>
+                <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot; .............................. (date)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">)),</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;declaration is certified correct and true.&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">250</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">completion_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FONTSIZE</span> <span class="o">=</span> <span class="mi">12</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">FONTNAME</span> <span class="o">=</span> <span class="s2">&quot;helv&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_process_number_to_text</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">number</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert a numeric value to a string with comma as decimal separator.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            number (float): Numeric value to be converted. While annotated as float, the</span>
+<span class="sd">            method will also handle integer values correctly through string conversion.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: String representation of the number with decimal points replaced by</span>
+<span class="sd">            commas.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">str_number</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">number</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="n">str_number</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;,&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_placeholder_coords</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">,</span>
+        <span class="n">placeholder_text</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Rect</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Find the coordinates of a placeholder text in the PDF.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            page (Page): The PDF page to search in.</span>
+<span class="sd">            placeholder_text (str): The text to locate.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the placeholder text is not found.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Rect: The bounding box of the placeholder text.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">search_for</span><span class="p">(</span><span class="n">placeholder_text</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">results</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Placeholder text &#39;</span><span class="si">{</span><span class="n">placeholder_text</span><span class="si">}</span><span class="s2">&#39; not found in document&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_offset_coords</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">,</span>
+        <span class="n">placeholder_key</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Rect</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieve the adjusted coordinates and bounding boxes for placeholders.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            page (Page): The PDF page to search in.</span>
+<span class="sd">            placeholder_key (str): The key representing the placeholder category.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple[dict[str, str], dict[str, Rect]]: A dictionary with adjusted coordinates</span>
+<span class="sd">            and another with full bounding boxes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">specific_zone</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">PLACEHOLDER</span><span class="p">[</span><span class="n">placeholder_key</span><span class="p">]</span>
+
+        <span class="n">coords_to_apply</span><span class="p">,</span> <span class="n">full_rects</span> <span class="o">=</span> <span class="p">{},</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="nb">type</span><span class="p">,</span> <span class="n">text_w_offset</span> <span class="ow">in</span> <span class="n">specific_zone</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">offset</span> <span class="o">=</span> <span class="n">text_w_offset</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">text_to_search</span> <span class="o">=</span> <span class="n">text_w_offset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="n">cr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_placeholder_coords</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">text_to_search</span><span class="p">)</span>
+            <span class="n">coord</span> <span class="o">=</span> <span class="p">(</span><span class="n">cr</span><span class="o">.</span><span class="n">x0</span> <span class="o">+</span> <span class="n">offset</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cr</span><span class="o">.</span><span class="n">y0</span> <span class="o">+</span> <span class="n">offset</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+            <span class="n">coords_to_apply</span><span class="p">[</span><span class="nb">type</span><span class="p">]</span> <span class="o">=</span> <span class="n">coord</span>
+            <span class="n">full_rects</span><span class="p">[</span><span class="nb">type</span><span class="p">]</span> <span class="o">=</span> <span class="n">cr</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">coords_to_apply</span><span class="p">,</span> <span class="n">full_rects</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_coords_tax_table</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">page</span><span class="p">:</span> <span class="n">Page</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract and structure coordinate information for tax table elements from a PDF</span>
+<span class="sd">        page.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            page (Page): A page that contains the tax table to fill.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list[dict[str, dict[str, tuple[float, float]]]]: A list of structured tax</span>
+<span class="sd">            tables where each table contains:</span>
+<span class="sd">            - Tax rate categories (0.12%, 0.35%, etc.) mapping to:</span>
+<span class="sd">                - &#39;tax_basis&#39;: Coordinate pair for tax basis amount</span>
+<span class="sd">                - &#39;tax_amount&#39;: Coordinate pair for tax amount</span>
+<span class="sd">            - &#39;total&#39;: Direct coordinate pair for total amount</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">PLACEHOLDER</span><span class="p">[</span><span class="s2">&quot;TAX_TABLE&quot;</span><span class="p">][</span><span class="s2">&quot;pattern&quot;</span><span class="p">]</span>
+        <span class="n">table_rects</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">search_for</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
+
+        <span class="n">structured_tables</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="p">[</span><span class="n">table_rects</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="mi">9</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">table_rects</span><span class="p">),</span> <span class="mi">9</span><span class="p">)]:</span>
+            <span class="n">structured_tables</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s1">&#39;0.12%&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;tax_basis&#39;</span><span class="p">:</span> <span class="n">table</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;tax_amount&#39;</span><span class="p">:</span> <span class="n">table</span><span class="p">[</span><span class="mi">1</span><span class="p">]},</span>
+                <span class="s1">&#39;0.35%&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;tax_basis&#39;</span><span class="p">:</span> <span class="n">table</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;tax_amount&#39;</span><span class="p">:</span> <span class="n">table</span><span class="p">[</span><span class="mi">3</span><span class="p">]},</span>
+                <span class="s1">&#39;1.32%_upper&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;tax_basis&#39;</span><span class="p">:</span> <span class="n">table</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="s1">&#39;tax_amount&#39;</span><span class="p">:</span> <span class="n">table</span><span class="p">[</span><span class="mi">5</span><span class="p">]},</span>
+                <span class="s1">&#39;1.32%_lower&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;tax_basis&#39;</span><span class="p">:</span> <span class="n">table</span><span class="p">[</span><span class="mi">6</span><span class="p">],</span> <span class="s1">&#39;tax_amount&#39;</span><span class="p">:</span> <span class="n">table</span><span class="p">[</span><span class="mi">7</span><span class="p">]},</span>
+                <span class="s1">&#39;total&#39;</span><span class="p">:</span> <span class="n">table</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span>
+            <span class="p">})</span>
+        <span class="k">return</span> <span class="n">structured_tables</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_insert_text_at_coords</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">,</span>
+        <span class="n">coords</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span>
+        <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">fontsize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Insert text at given coordinates.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            page (Page): PDF page object to fill in.</span>
+<span class="sd">            coords (tuple[float, float]): (x, y) coordinates in PDF points where the text</span>
+<span class="sd">            baseline will start. Follows PDF coordinate system where (0,0) is typically</span>
+<span class="sd">            the bottom-left corner.</span>
+<span class="sd">            text (str): Text content to insert. Will be rendered exactly as provided,</span>
+<span class="sd">            without automatic case conversion or formatting.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">page</span><span class="o">.</span><span class="n">insert_text</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span>
+                         <span class="n">text</span><span class="p">,</span>
+                         <span class="n">fontsize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">FONTSIZE</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">fontsize</span> <span class="k">else</span> <span class="n">fontsize</span><span class="p">,</span>
+                         <span class="n">fontname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">FONTNAME</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Writer.fill_first_box">
+<a class="viewcode-back" href="../writer.html#writer.Writer.fill_first_box">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fill_first_box</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">,</span>
+        <span class="n">user_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Page</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Populate the first section of a form page with personal user information.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            page (Page): The page pdf to fill.</span>
+<span class="sd">            user_data (dict[str, str]): User information containing:</span>
+<span class="sd">            - date: String in format &#39;DD.MM.YYYY&#39;</span>
+<span class="sd">            - national_number: National identification number</span>
+<span class="sd">            - full_name: User&#39;s complete name</span>
+<span class="sd">            - address: Street address</span>
+<span class="sd">            - postal_code: Zip/postal code</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Page: Modified page object with inserted text, enabling method chaining.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">FONTSIZE</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="n">coords</span><span class="p">,</span> <span class="n">rects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_offset_coords</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="s2">&quot;FIRST_PAGE&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insert_text_at_coords</span><span class="p">(</span><span class="n">page</span><span class="p">,</span>
+                                    <span class="n">coords</span><span class="p">[</span><span class="s2">&quot;start_month&quot;</span><span class="p">],</span>
+                                    <span class="n">user_data</span><span class="p">[</span><span class="s2">&quot;completion_date&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span>
+                                    <span class="n">FONTSIZE</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insert_text_at_coords</span><span class="p">(</span><span class="n">page</span><span class="p">,</span>
+                                    <span class="n">coords</span><span class="p">[</span><span class="s2">&quot;start_year&quot;</span><span class="p">],</span>
+                                    <span class="n">user_data</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">:],</span>
+                                    <span class="n">FONTSIZE</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insert_text_at_coords</span><span class="p">(</span><span class="n">page</span><span class="p">,</span>
+                                    <span class="n">coords</span><span class="p">[</span><span class="s2">&quot;national_number&quot;</span><span class="p">],</span>
+                                    <span class="n">user_data</span><span class="p">[</span><span class="s2">&quot;national_number&quot;</span><span class="p">],</span>
+                                    <span class="n">FONTSIZE</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insert_text_at_coords</span><span class="p">(</span><span class="n">page</span><span class="p">,</span>
+                                    <span class="n">coords</span><span class="p">[</span><span class="s2">&quot;user_name&quot;</span><span class="p">],</span>
+                                    <span class="n">user_data</span><span class="p">[</span><span class="s2">&quot;full_name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
+                                    <span class="n">FONTSIZE</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insert_text_at_coords</span><span class="p">(</span><span class="n">page</span><span class="p">,</span>
+                                    <span class="n">coords</span><span class="p">[</span><span class="s2">&quot;address&quot;</span><span class="p">],</span>
+                                    <span class="n">user_data</span><span class="p">[</span><span class="s2">&quot;address&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
+                                    <span class="n">FONTSIZE</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insert_text_at_coords</span><span class="p">(</span><span class="n">page</span><span class="p">,</span>
+                                    <span class="p">(</span><span class="n">rects</span><span class="p">[</span><span class="s2">&quot;address&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">x0</span> <span class="o">+</span> <span class="mi">230</span><span class="p">,</span> <span class="n">rects</span><span class="p">[</span><span class="s2">&quot;address&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">y1</span> <span class="o">+</span> <span class="mi">8</span><span class="p">),</span>
+                                    <span class="n">user_data</span><span class="p">[</span><span class="s2">&quot;postal_code&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
+                                    <span class="n">FONTSIZE</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">page</span></div>
+
+
+<div class="viewcode-block" id="Writer.fill_empty_table_first_page">
+<a class="viewcode-back" href="../writer.html#writer.Writer.fill_empty_table_first_page">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fill_empty_table_first_page</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">page</span><span class="p">:</span> <span class="n">Page</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Page</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fill an empty cell in the tax table on the first page.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            page (Page): The PDF page containing the tax table.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Page: The modified page with the filled cell.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">FONTSIZE</span> <span class="o">=</span> <span class="mi">20</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">PLACEHOLDER</span><span class="p">[</span><span class="s2">&quot;TAX_TABLE&quot;</span><span class="p">][</span><span class="s2">&quot;pattern&quot;</span><span class="p">]</span>
+        <span class="n">rects</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">search_for</span><span class="p">(</span><span class="n">pattern</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="p">(</span><span class="n">rects</span><span class="o">.</span><span class="n">x0</span> <span class="o">+</span> <span class="mi">21</span><span class="p">,</span> <span class="n">rects</span><span class="o">.</span><span class="n">y0</span> <span class="o">+</span> <span class="mi">6</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insert_text_at_coords</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="n">FONTSIZE</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">page</span></div>
+
+
+<div class="viewcode-block" id="Writer.fill_empty_table_second_page">
+<a class="viewcode-back" href="../writer.html#writer.Writer.fill_empty_table_second_page">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fill_empty_table_second_page</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">page</span><span class="p">:</span> <span class="n">Page</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Page</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fill empty cells in the tax table on the second page.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">        page (Page): The PDF page containing the tax table.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Page: The modified page with the filled cells.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">PLACEHOLDER</span><span class="p">[</span><span class="s2">&quot;TAX_TABLE&quot;</span><span class="p">][</span><span class="s2">&quot;pattern&quot;</span><span class="p">]</span>
+        <span class="n">rects</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">search_for</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="p">(</span><span class="n">rects</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="n">rects</span><span class="p">[</span><span class="o">-</span><span class="mi">11</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_insert_text_at_coords</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">x0</span> <span class="o">+</span> <span class="mi">21</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">y0</span> <span class="o">+</span> <span class="mi">6</span><span class="p">),</span> <span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">page</span></div>
+
+
+<div class="viewcode-block" id="Writer.fill_tax_table">
+<a class="viewcode-back" href="../writer.html#writer.Writer.fill_tax_table">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fill_tax_table</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">,</span>
+        <span class="n">pages_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Page</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Populate tax table entries and calculates total tax amount for the tax table</span>
+<span class="sd">        document.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            page (Page): PDF page object containing the tax table.</span>
+<span class="sd">            pages_data (dict[str, dict[str, dict[str, str]]]): Structured transaction data</span>
+<span class="sd">            with:</span>
+<span class="sd">                - First-level keys: &#39;page_1&#39;, &#39;page_2&#39;, etc.</span>
+<span class="sd">                - Each page contains:</span>
+<span class="sd">                        - &#39;rate&#39;: Tax rate category (e.g., &#39;0.12%&#39;, &#39;1.32%_upper&#39;)</span>
+<span class="sd">                        - &#39;summary&#39;: Financial summary containing:</span>
+<span class="sd">                            &#39;TOTAL_TAX_BASIS_IN_EUR&#39;: Taxable base amount</span>
+<span class="sd">                            &#39;TOTAL_TAX_AMOUNT_IN_EUR&#39;: Calculated tax amount</span>
+<span class="sd">                            &#39;TOTAL_TRANSACTIONS&#39;: Number of transactions</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Page: Modified page object with populated tax table values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">table_rects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_coords_tax_table</span><span class="p">(</span><span class="n">page</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">total_tax_amount</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">pages_data</span><span class="o">.</span><span class="n">keys</span><span class="p">())):</span>
+            <span class="n">page_info</span> <span class="o">=</span> <span class="n">pages_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;page_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="n">rate</span> <span class="o">=</span> <span class="n">page_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;rate&quot;</span><span class="p">)</span>
+            <span class="n">summary</span> <span class="o">=</span> <span class="n">page_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;summary&quot;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="n">tax_basis</span> <span class="o">=</span> <span class="n">summary</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;TOTAL_TAX_BASIS_IN_EUR&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">)</span>
+            <span class="n">tax_amount</span> <span class="o">=</span> <span class="n">summary</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;TOTAL_TAX_AMOUNT_IN_EUR&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">)</span>
+            <span class="n">number</span> <span class="o">=</span> <span class="n">summary</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;TOTAL_TRANSACTIONS&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_insert_text_at_coords</span><span class="p">(</span>
+                <span class="n">page</span><span class="p">,</span>
+                <span class="p">(</span>
+                    <span class="n">table_rects</span><span class="p">[</span><span class="n">rate</span><span class="p">][</span><span class="s1">&#39;tax_basis&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">x0</span> <span class="o">+</span> <span class="mi">18</span><span class="p">,</span>
+                    <span class="n">table_rects</span><span class="p">[</span><span class="n">rate</span><span class="p">][</span><span class="s1">&#39;tax_basis&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">y0</span> <span class="o">+</span> <span class="mi">6</span>
+                <span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_process_number_to_text</span><span class="p">(</span><span class="n">tax_basis</span><span class="p">))</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_insert_text_at_coords</span><span class="p">(</span>
+                <span class="n">page</span><span class="p">,</span>
+                <span class="p">(</span>
+                    <span class="n">table_rects</span><span class="p">[</span><span class="n">rate</span><span class="p">][</span><span class="s1">&#39;tax_amount&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">x0</span> <span class="o">+</span> <span class="mi">31</span><span class="p">,</span>
+                    <span class="n">table_rects</span><span class="p">[</span><span class="n">rate</span><span class="p">][</span><span class="s1">&#39;tax_amount&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">y0</span> <span class="o">+</span> <span class="mi">6</span>
+                <span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_process_number_to_text</span><span class="p">(</span><span class="n">tax_amount</span><span class="p">))</span>
+
+            <span class="n">cr</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">search_for</span><span class="p">(</span><span class="n">rate</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;%&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_insert_text_at_coords</span><span class="p">(</span>
+                <span class="n">page</span><span class="p">,</span>
+                <span class="p">(</span>
+                    <span class="n">cr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">x0</span> <span class="o">+</span> <span class="mi">55</span><span class="p">,</span>
+                    <span class="n">cr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">y0</span> <span class="o">+</span> <span class="mi">8</span>
+                <span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_process_number_to_text</span><span class="p">(</span><span class="n">number</span><span class="p">))</span>
+
+            <span class="n">total_tax_amount</span> <span class="o">+=</span> <span class="nb">float</span><span class="p">(</span><span class="n">tax_amount</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insert_text_at_coords</span><span class="p">(</span>
+            <span class="n">page</span><span class="p">,</span>
+            <span class="p">(</span>
+                <span class="n">table_rects</span><span class="p">[</span><span class="s2">&quot;total&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">x0</span> <span class="o">+</span> <span class="mi">31</span><span class="p">,</span>
+                <span class="n">table_rects</span><span class="p">[</span><span class="s2">&quot;total&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">y0</span> <span class="o">+</span> <span class="mi">6</span>
+            <span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_process_number_to_text</span><span class="p">(</span><span class="n">total_tax_amount</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fill_empty_table_first_page</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">page</span></div>
+
+
+<div class="viewcode-block" id="Writer.fill_total_tax_amount">
+<a class="viewcode-back" href="../writer.html#writer.Writer.fill_total_tax_amount">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fill_total_tax_amount</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">,</span>
+        <span class="n">total_tax_amount</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Page</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Insert the final total tax amount into the designated tax table location.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            page (Page): PDF page object containing the tax table.</span>
+<span class="sd">            total_tax_amount (float): Accumulated sum of all tax amounts from</span>
+<span class="sd">            individual transactions. Should be a positive numeric value.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Page: Modified page object with total tax amount inserted.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">PLACEHOLDER</span><span class="p">[</span><span class="s2">&quot;TAX_TABLE&quot;</span><span class="p">][</span><span class="s2">&quot;pattern&quot;</span><span class="p">]</span>
+        <span class="n">rects</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">search_for</span><span class="p">(</span><span class="n">pattern</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insert_text_at_coords</span><span class="p">(</span>
+            <span class="n">page</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">rects</span><span class="o">.</span><span class="n">x0</span> <span class="o">+</span> <span class="mi">27</span><span class="p">,</span> <span class="n">rects</span><span class="o">.</span><span class="n">y0</span> <span class="o">+</span> <span class="mi">6</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_process_number_to_text</span><span class="p">(</span><span class="n">total_tax_amount</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fill_empty_table_second_page</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">page</span></div>
+
+
+<div class="viewcode-block" id="Writer.fill_final_box">
+<a class="viewcode-back" href="../writer.html#writer.Writer.fill_final_box">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fill_final_box</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">page</span><span class="p">:</span> <span class="n">Page</span><span class="p">,</span>
+        <span class="n">user_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">location</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Brussels&quot;</span><span class="p">,</span>
+        <span class="n">date_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">-%m-%Y&quot;</span><span class="p">,</span>
+        <span class="n">insert_signature</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Page</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fill predefined placeholders in the final form with user details.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            page (Page): The PDF page to modify.</span>
+<span class="sd">            user_name (str): The name of the user to insert.</span>
+<span class="sd">            location (str, optional): The location to insert. Defaults to &quot;Brussels&quot;.</span>
+<span class="sd">            date_format (str, optional): The date format. Defaults to &quot;%d-%m-%Y&quot;.</span>
+<span class="sd">            insert_signature (bool | None, optional): Whether to insert a signature.</span>
+<span class="sd">            Defaults to None.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Page: The modified PDF page with the inserted details.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">completion_date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">completion_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">date_format</span><span class="p">)</span>
+        <span class="n">coords</span><span class="p">,</span> <span class="n">rects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_offset_coords</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="s2">&quot;FINAL_PAGE&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insert_text_at_coords</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">coords</span><span class="p">[</span><span class="s2">&quot;location&quot;</span><span class="p">],</span> <span class="n">location</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insert_text_at_coords</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">coords</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">],</span> <span class="n">completion_date</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insert_text_at_coords</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">coords</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">],</span> <span class="n">user_name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">insert_signature</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">directory</span> <span class="o">=</span> <span class="n">FileUtils</span><span class="o">.</span><span class="n">get_path</span><span class="p">(</span><span class="s2">&quot;../docs&quot;</span><span class="p">)</span>
+            <span class="n">image_files</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">((</span><span class="s1">&#39;.png&#39;</span><span class="p">,</span> <span class="s1">&#39;.jpeg&#39;</span><span class="p">,</span> <span class="s1">&#39;.jpg&#39;</span><span class="p">))</span>
+            <span class="p">]</span>
+
+            <span class="n">signature_filename</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="nb">max</span><span class="p">(</span><span class="n">image_files</span><span class="p">,</span>
+                    <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">f</span><span class="p">)))</span>
+            <span class="p">)</span>
+
+            <span class="n">signature_filename_path</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">signature_filename</span><span class="p">)))</span>
+
+            <span class="n">pix</span> <span class="o">=</span> <span class="n">pymupdf</span><span class="o">.</span><span class="n">Pixmap</span><span class="p">(</span><span class="n">signature_filename_path</span><span class="p">)</span>
+            <span class="n">scale</span> <span class="o">=</span> <span class="mf">0.2</span>
+            <span class="n">rect_width</span> <span class="o">=</span> <span class="n">pix</span><span class="o">.</span><span class="n">width</span> <span class="o">*</span> <span class="n">scale</span>
+            <span class="n">rect_height</span> <span class="o">=</span> <span class="n">pix</span><span class="o">.</span><span class="n">height</span> <span class="o">*</span> <span class="n">scale</span>
+            <span class="n">coord_sign</span> <span class="o">=</span> <span class="n">pymupdf</span><span class="o">.</span><span class="n">Rect</span><span class="p">(</span>
+                <span class="n">rects</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">x0</span> <span class="o">+</span> <span class="mi">300</span><span class="p">,</span>
+                <span class="n">rects</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">y0</span> <span class="o">+</span> <span class="mi">15</span><span class="p">,</span>
+                <span class="n">rects</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">x0</span> <span class="o">+</span> <span class="mi">300</span> <span class="o">+</span> <span class="n">rect_width</span><span class="p">,</span>
+                <span class="n">rects</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">y0</span> <span class="o">+</span> <span class="mi">15</span> <span class="o">+</span> <span class="n">rect_height</span>
+            <span class="p">)</span>
+            <span class="n">page</span><span class="o">.</span><span class="n">insert_image</span><span class="p">(</span><span class="n">coord_sign</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">signature_filename_path</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">page</span></div>
+
+
+<div class="viewcode-block" id="Writer.fill_document">
+<a class="viewcode-back" href="../writer.html#writer.Writer.fill_document">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fill_document</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">extracted_data</span><span class="p">:</span> <span class="n">ExtractedData</span><span class="p">,</span>
+        <span class="n">to_sign</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">save_it</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Document</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fill a given PDF document with extracted user data.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            doc (Document): The PDF document to be modified.</span>
+<span class="sd">            extracted_data (ExtractedData):</span>
+<span class="sd">                A dictionary containing structured extracted data. Expected format:</span>
+<span class="sd">                - &#39;page_0&#39;: Contains user information under &#39;user_infos&#39;</span>
+<span class="sd">                - &#39;page_X&#39;: Contains relevant data for each page (e.g., tax details)</span>
+<span class="sd">            to_sign (bool, optional): If True, inserts a signature on the final page.</span>
+<span class="sd">            Defaults to False.</span>
+<span class="sd">            save_it (bool, optional): If True, save the filled document into the output</span>
+<span class="sd">            folder.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Document: The modified PDF document with the filled-in data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">FORM_DOC</span>
+        <span class="n">page1</span><span class="p">,</span> <span class="n">page2</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">doc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">doc</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">doc</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">user_data</span> <span class="o">=</span> <span class="n">extracted_data</span><span class="p">[</span><span class="s2">&quot;page_0&quot;</span><span class="p">][</span><span class="s2">&quot;user_infos&quot;</span><span class="p">]</span>
+
+        <span class="n">page1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fill_first_box</span><span class="p">(</span><span class="n">page1</span><span class="p">,</span>
+                                    <span class="n">user_data</span><span class="p">)</span>
+
+        <span class="n">page1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fill_tax_table</span><span class="p">(</span><span class="n">page1</span><span class="p">,</span>
+                                    <span class="n">extracted_data</span><span class="p">)</span>
+
+        <span class="n">page2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fill_final_box</span><span class="p">(</span><span class="n">page2</span><span class="p">,</span>
+                                    <span class="n">user_data</span><span class="p">[</span><span class="s2">&quot;full_name&quot;</span><span class="p">],</span>
+                                    <span class="n">insert_signature</span><span class="o">=</span><span class="n">to_sign</span><span class="p">)</span>
+
+        <span class="n">page2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fill_total_tax_amount</span><span class="p">(</span><span class="n">page2</span><span class="p">,</span>
+                                           <span class="n">extracted_data</span><span class="p">[</span><span class="s2">&quot;page_0&quot;</span><span class="p">][</span><span class="s2">&quot;total_tax_amount&quot;</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">save_it</span><span class="p">:</span>
+            <span class="n">filled_date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">completion_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%m-%Y&quot;</span><span class="p">)</span>
+            <span class="n">file_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;../output/filled_form/MTO_completed_</span><span class="si">{</span><span class="n">filled_date</span><span class="si">}</span><span class="s2">.pdf&quot;</span>
+            <span class="n">doc</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">doc</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Mehdi Karkour.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
