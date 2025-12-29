@@ -1,3 +1,13 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.ruffle-cache/
+
+
 # FOLDERS
 # The following folders may contains sensitive information and are used to test/developpe
 # the code, and thus should not be taken into account.
@@ -17,3 +27,13 @@ dist
 *.ipynb
 *.yaml
 signature.png
+
+
+# ENVIRONNEMENT
+venv/
+.env
+.venv
+
+
+# IDE SETTINGS
+.vscode/
