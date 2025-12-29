@@ -127,7 +127,7 @@ python launcher.py
    - Open your browser and navigate to http://localhost:8501
 
 3. **Using the interface**:
-![User Interface](assets/user_interface.png)
+![User Interface](docs/assets/user_interface.png)
 *Screenshot of the RepubliTax user interface*
    - Upload your Trade Republic tax document
    - Enter your Belgian national number
