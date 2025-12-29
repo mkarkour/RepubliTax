@@ -4,8 +4,8 @@ from datetime import datetime
 import pymupdf
 from pymupdf import Document, Page, Rect
 
-from src.types import ExtractedData
-from src.utils_files import FileUtils
+from writer_types import ExtractedData
+from utils_files import FileUtils
 
 
 class Writer:
@@ -272,13 +272,13 @@ class Writer:
             page (Page): PDF page object containing the tax table.
             pages_data (dict[str, dict[str, dict[str, str]]]): Structured transaction data
             with:
-            - First-level keys: 'page_1', 'page_2', etc.
-            - Each page contains:
-                'rate': Tax rate category (e.g., '0.12%', '1.32%_upper')
-                'summary': Financial summary containing:
-                    'TOTAL_TAX_BASIS_IN_EUR': Taxable base amount
-                    'TOTAL_TAX_AMOUNT_IN_EUR': Calculated tax amount
-                    'TOTAL_TRANSACTIONS': Number of transactions
+                - First-level keys: 'page_1', 'page_2', etc.
+                - Each page contains:
+                        - 'rate': Tax rate category (e.g., '0.12%', '1.32%_upper')
+                        - 'summary': Financial summary containing:
+                            'TOTAL_TAX_BASIS_IN_EUR': Taxable base amount
+                            'TOTAL_TAX_AMOUNT_IN_EUR': Calculated tax amount
+                            'TOTAL_TRANSACTIONS': Number of transactions
 
         Returns:
             Page: Modified page object with populated tax table values.

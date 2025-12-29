@@ -17,7 +17,6 @@ extracted_mto
 docs/input_mto
 output/filled_form
 output/status
-build
 dist
 
 
@@ -33,6 +32,7 @@ signature.png
 venv/
 .env
 .venv
+.ruff_cache/
 
 
 # IDE SETTINGS
