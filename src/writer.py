@@ -4,7 +4,7 @@ from datetime import datetime
 import pymupdf
 from pymupdf import Document, Page, Rect
 
-from src.types import ExtractedData, PageData, Summary, UserInfo
+from src.types import ExtractedData
 from src.utils_files import FileUtils
 
 
